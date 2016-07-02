@@ -13,23 +13,12 @@ public class CSVStash {
     private void stash(StashInfo stashInfo) {
         try {
             CSVReader reader = new CSVReader(new FileReader(stashInfo.getCsvFile()));
-            String [] line;
 
             Connection conn = null;
             try {
                 conn = getConnection(stashInfo);
 
-                int i = 0;
-
-                while ((line = reader.readNext()) != null) {
-                    if (i == 0) {
-                        createTable(stashInfo, line, conn);
-                    } else {
-                        insertRow(stashInfo, line, conn);
-                    }
-
-                    i++;
-                }
+                processLines(stashInfo, reader, conn);
             } catch (SQLException e) {
                 System.out.println("Error getting connection: " + e.getMessage());
             } finally {
@@ -40,28 +29,44 @@ public class CSVStash {
         }
     }
 
-    private void createTable(StashInfo stashInfo, String[] nextLine, Connection conn) {
-        executeStatement(generateCreateTableStatement(stashInfo, nextLine), conn);
+    private void processLines(StashInfo stashInfo, CSVReader reader, Connection conn) throws IOException {
+        String[] line;
+
+        int i = 0;
+
+        while ((line = reader.readNext()) != null) {
+            if (i == 0) {
+                createTable(stashInfo, line, conn);
+            } else {
+                insertRow(stashInfo, line, conn);
+            }
+
+            i++;
+        }
     }
 
-    String generateCreateTableStatement(StashInfo stashInfo, String[] nextLine) {
+    private void createTable(StashInfo stashInfo, String[] line, Connection conn) {
+        executeStatement(generateCreateTableStatement(stashInfo, line), conn);
+    }
+
+    String generateCreateTableStatement(StashInfo stashInfo, String[] line) {
         String createTableStatement = "CREATE TABLE IF NOT EXISTS " + stashInfo.getTable() + " (";
 
-        for (String columnName : nextLine) {
+        for (String columnName : line) {
             createTableStatement += columnName + " VARCHAR(255), ";
         }
 
         return createTableStatement.replaceAll(", $", ");");
     }
 
-    private void insertRow(StashInfo stashInfo, String[] nextLine, Connection conn) {
-        executeStatement(generateInsertRowStatement(stashInfo, nextLine), conn);
+    private void insertRow(StashInfo stashInfo, String[] line, Connection conn) {
+        executeStatement(generateInsertRowStatement(stashInfo, line), conn);
     }
 
-    String generateInsertRowStatement(StashInfo stashInfo, String[] nextLine) {
+    String generateInsertRowStatement(StashInfo stashInfo, String[] line) {
         String insertStatement = "INSERT INTO " + stashInfo.getTable() + " VALUES (";
 
-        for (String value : nextLine) {
+        for (String value : line) {
             insertStatement += "'" + value + "', ";
         }
 
