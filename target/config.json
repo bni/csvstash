@@ -14,10 +14,6 @@
     }, {
       "columnName": "eq_site_limit",
       "columnType": "DOUBLE"
-    }, {
-      "columnName": "county",
-      "columnType": "VARCHAR(100) NOT NULL",
-      "equalsFilter": "SUWANNEE COUNTY"
     }
   ]
 }

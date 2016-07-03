@@ -61,9 +61,9 @@ public class CSVStashTest {
     private List<ColumnType> generateDummyColumnTypes() {
         // Intentionally leave out col3 here
         List<ColumnType> columnTypes = new ArrayList<>();
-        columnTypes.add(new ColumnType("col1", "INT NOT NULL", null));
-        columnTypes.add(new ColumnType("col2", "CHAR(4) NOT NULL", null));
-        columnTypes.add(new ColumnType("col4", "DOUBLE", null));
+        columnTypes.add(new ColumnType("col1", "INT NOT NULL"));
+        columnTypes.add(new ColumnType("col2", "CHAR(4) NOT NULL"));
+        columnTypes.add(new ColumnType("col4", "DOUBLE"));
 
         return columnTypes;
     }
