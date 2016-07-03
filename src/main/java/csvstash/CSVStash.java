@@ -86,11 +86,12 @@ public class CSVStash {
 
     private String generateColumnSpecification() {
         String columnSpecification = "";
+
         for (Map.Entry<String, String> entry : headerColumnTypes.entrySet()) {
             columnSpecification += entry.getKey() + ", ";
         }
-        columnSpecification = columnSpecification.replaceAll(", $", "");
-        return columnSpecification;
+
+        return columnSpecification.replaceAll(", $", "");
     }
 
     private String generateValues(String[] line) {

@@ -9,12 +9,17 @@ public class ColumnType {
     @JsonProperty("columnType")
     private String columnType;
 
+    @JsonProperty("equalsFilter")
+    private String equalsFilter;
+
     // Default constructor required by Jackson
     public ColumnType() {}
 
-    public ColumnType(String columnName, String columnType) {
+    // Used from test
+    public ColumnType(String columnName, String columnType, String equalsFilter) {
         this.columnName = columnName;
         this.columnType = columnType;
+        this.equalsFilter = equalsFilter;
     }
 
     String getColumnName() {
@@ -23,5 +28,9 @@ public class ColumnType {
 
     String getColumnType() {
         return columnType;
+    }
+
+    String getEqualsFilter() {
+        return equalsFilter;
     }
 }

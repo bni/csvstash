@@ -14,7 +14,7 @@ public class CSVStashTest {
         "col1",
         "col2",
         "col3",
-        "col4",
+        "col4"
     };
 
     private static final String[] INPUT_LINE = {
@@ -42,22 +42,15 @@ public class CSVStashTest {
         "3.14159);";
 
     @Test
-    public void generateCreateTableStatement() throws Exception {
+    public void generateStatements() throws Exception {
+        CSVStash csvStash = new CSVStash();
+
         StashConfig stashConfig = new StashConfig("test", generateDummyColumnTypes());
 
         assertEquals(
             "Create table statement is not correct",
             EXPECTED_CREATE_TABLE_STATEMENT,
-            new CSVStash().generateCreateTableStatement(stashConfig, INPUT_HEADER));
-    }
-
-    @Test
-    public void generateInsertRowStatement() throws Exception {
-        StashConfig stashConfig = new StashConfig("test", generateDummyColumnTypes());
-
-        // Must generate complete column types before we can generate insert statement
-        CSVStash csvStash = new CSVStash();
-        csvStash.generateCreateTableStatement(stashConfig, INPUT_HEADER);
+            csvStash.generateCreateTableStatement(stashConfig, INPUT_HEADER));
 
         assertEquals(
             "Insert statement is not correct",
@@ -68,9 +61,9 @@ public class CSVStashTest {
     private List<ColumnType> generateDummyColumnTypes() {
         // Intentionally leave out col3 here
         List<ColumnType> columnTypes = new ArrayList<>();
-        columnTypes.add(new ColumnType("col1", "INT NOT NULL"));
-        columnTypes.add(new ColumnType("col2", "CHAR(4) NOT NULL"));
-        columnTypes.add(new ColumnType("col4", "DOUBLE"));
+        columnTypes.add(new ColumnType("col1", "INT NOT NULL", null));
+        columnTypes.add(new ColumnType("col2", "CHAR(4) NOT NULL", null));
+        columnTypes.add(new ColumnType("col4", "DOUBLE", null));
 
         return columnTypes;
     }
