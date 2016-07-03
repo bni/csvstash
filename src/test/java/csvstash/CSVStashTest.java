@@ -2,38 +2,74 @@ package csvstash;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 public class CSVStashTest {
+    private static final String[] INPUT_HEADER = {
+        "col1",
+        "col2",
+        "col3",
+        "col4",
+    };
+
+    private static final String[] INPUT_LINE = {
+        "1",
+        "TEST",
+        "some medium long string",
+        "3.14159"
+    };
+
+    private static final String EXPECTED_CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS test (" +
+        "col1 INT NOT NULL, " +
+        "col2 CHAR(4) NOT NULL, " +
+        "col3 VARCHAR(255), " +
+        "col4 DOUBLE);";
+
+    private static final String EXPECTED_INSERT_STATEMENT = "INSERT INTO test (" +
+        "col1, " +
+        "col2, " +
+        "col3, " +
+        "col4" +
+        ") VALUES (" +
+        "1, " +
+        "'TEST', " +
+        "'some medium long string', " +
+        "3.14159);";
+
     @Test
     public void generateCreateTableStatement() throws Exception {
-        StashInfo stashInfo = new StashInfo("", "", "", "", "test");
-
-        String[] line = {
-            "col1",
-            "col2",
-            "col3"
-        };
+        StashInfo stashInfo = new StashInfo("test", generateDummyColumnTypes());
 
         assertEquals(
-            "Statement was invalid",
-            "CREATE TABLE IF NOT EXISTS test (col1 VARCHAR(255), col2 VARCHAR(255), col3 VARCHAR(255));",
-            new CSVStash().generateCreateTableStatement(stashInfo, line));
+            "Create table statement is not correct",
+            EXPECTED_CREATE_TABLE_STATEMENT,
+            new CSVStash().generateCreateTableStatement(stashInfo, INPUT_HEADER));
     }
 
     @Test
     public void generateInsertRowStatement() throws Exception {
-        StashInfo stashInfo = new StashInfo("", "", "", "", "test");
+        StashInfo stashInfo = new StashInfo("test", generateDummyColumnTypes());
 
-        String[] line = {
-            "val1",
-            "val2",
-            "val3"
-        };
+        // Must generate complete column types before we can generate insert statement
+        CSVStash csvStash = new CSVStash();
+        csvStash.generateCreateTableStatement(stashInfo, INPUT_HEADER);
 
         assertEquals(
-            "Statement was invalid",
-            "INSERT INTO test VALUES ('val1', 'val2', 'val3');",
-            new CSVStash().generateInsertRowStatement(stashInfo, line));
+            "Insert statement is not correct",
+            EXPECTED_INSERT_STATEMENT,
+            csvStash.generateInsertRowStatement(stashInfo, INPUT_LINE));
+    }
+
+    private List<ColumnType> generateDummyColumnTypes() {
+        // Intentionally leave out col3 here
+        List<ColumnType> columnTypes = new ArrayList<>();
+        columnTypes.add(new ColumnType("col1", "INT NOT NULL"));
+        columnTypes.add(new ColumnType("col2", "CHAR(4) NOT NULL"));
+        columnTypes.add(new ColumnType("col4", "DOUBLE"));
+
+        return columnTypes;
     }
 }

@@ -3,5 +3,17 @@
   "database": "test",
   "user": "root",
   "pass": "root",
-  "table": "insurance"
+  "table": "insurance",
+  "columnTypes": [
+    {
+      "columnName": "policyID",
+      "columnType": "BIGINT NOT NULL"
+    }, {
+      "columnName": "statecode",
+      "columnType": "CHAR(2) NOT NULL"
+    }, {
+      "columnName": "eq_site_limit",
+      "columnType": "DOUBLE"
+    }
+  ]
 }

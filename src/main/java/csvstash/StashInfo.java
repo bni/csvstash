@@ -3,7 +3,13 @@ package csvstash;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 class StashInfo {
+    static final String DEFAULT_COLUMN_TYPE = "VARCHAR(255)";
+
     @JsonIgnore
     private String csvFile;
 
@@ -22,16 +28,16 @@ class StashInfo {
     @JsonProperty("table")
     private String table;
 
+    @JsonProperty("columnTypes")
+    private List<ColumnType> columnTypes;
+
     // Default constructor required by Jackson
     StashInfo() {}
 
     // Used from test
-    StashInfo(String host, String database, String user, String pass, String table) {
-        this.host = host;
-        this.database = database;
-        this.user = user;
-        this.pass = pass;
+    StashInfo(String table, List<ColumnType> columnTypes) {
         this.table = table;
+        this.columnTypes = columnTypes;
     }
 
     String getCsvFile() {
@@ -60,5 +66,11 @@ class StashInfo {
 
     String getTable() {
         return table;
+    }
+
+    Map<String, String> getColumnTypes() {
+        return columnTypes.stream().collect(
+            Collectors.toMap(ColumnType::getColumnName, ColumnType::getColumnType)
+        );
     }
 }

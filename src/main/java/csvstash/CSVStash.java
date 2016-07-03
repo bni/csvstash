@@ -10,8 +10,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class CSVStash {
+    private Map<String, String> completeColumnTypes;
+
     private void stash(StashInfo stashInfo) throws IOException {
         CSVReader reader = new CSVReader(new FileReader(stashInfo.getCsvFile()));
 
@@ -47,11 +51,21 @@ public class CSVStash {
         executeStatement(generateCreateTableStatement(stashInfo, line), conn);
     }
 
-    String generateCreateTableStatement(StashInfo stashInfo, String[] line) {
+    String generateCreateTableStatement(StashInfo stashInfo, String[] header) {
         String createTableStatement = "CREATE TABLE IF NOT EXISTS " + stashInfo.getTable() + " (";
 
-        for (String columnName : line) {
-            createTableStatement += columnName + " VARCHAR(255), ";
+        completeColumnTypes = new LinkedHashMap<>();
+
+        for (String columnName : header) {
+            String columnType = stashInfo.getColumnTypes().get(columnName);
+
+            if (columnType != null) {
+                completeColumnTypes.put(columnName, columnType);
+            } else {
+                completeColumnTypes.put(columnName, StashInfo.DEFAULT_COLUMN_TYPE);
+            }
+
+            createTableStatement += columnName + " " + completeColumnTypes.get(columnName) + ", ";
         }
 
         return createTableStatement.replaceAll(", $", ");");
@@ -62,10 +76,26 @@ public class CSVStash {
     }
 
     String generateInsertRowStatement(StashInfo stashInfo, String[] line) {
-        String insertStatement = "INSERT INTO " + stashInfo.getTable() + " VALUES (";
+        String columnSpecification = "";
+        for (Map.Entry<String, String> entry : completeColumnTypes.entrySet()) {
+            columnSpecification += entry.getKey() + ", ";
+        }
+        columnSpecification = columnSpecification.replaceAll(", $", "");
 
+        String insertStatement = "INSERT INTO " + stashInfo.getTable() + " (" + columnSpecification + ") VALUES (";
+
+        int i = 0;
         for (String value : line) {
-            insertStatement += "'" + value + "', ";
+            String columnType = (String)completeColumnTypes.values().toArray()[i];
+
+            String hyphen = "";
+            if (columnType.contains("CHAR") || columnType.contains("DATE")) {
+                hyphen = "'";
+            }
+
+            insertStatement += hyphen + value + hyphen + ", ";
+
+            i++;
         }
 
         return insertStatement.replaceAll(", $", ");");
