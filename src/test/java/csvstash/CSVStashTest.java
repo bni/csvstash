@@ -7,7 +7,7 @@ import static org.junit.Assert.assertEquals;
 public class CSVStashTest {
     @Test
     public void generateCreateTableStatement() throws Exception {
-        StashInfo stashInfo = new StashInfo("", "", "", "", "", "test");
+        StashInfo stashInfo = new StashInfo("", "", "", "", "test");
 
         String[] line = {
             "col1",
@@ -23,7 +23,7 @@ public class CSVStashTest {
 
     @Test
     public void generateInsertRowStatement() throws Exception {
-        StashInfo stashInfo = new StashInfo("", "", "", "", "", "test");
+        StashInfo stashInfo = new StashInfo("", "", "", "", "test");
 
         String[] line = {
             "val1",

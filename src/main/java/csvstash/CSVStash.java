@@ -1,7 +1,9 @@
 package csvstash;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
@@ -10,22 +12,18 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class CSVStash {
-    private void stash(StashInfo stashInfo) {
+    private void stash(StashInfo stashInfo) throws IOException {
+        CSVReader reader = new CSVReader(new FileReader(stashInfo.getCsvFile()));
+
+        Connection conn = null;
         try {
-            CSVReader reader = new CSVReader(new FileReader(stashInfo.getCsvFile()));
+            conn = getConnection(stashInfo);
 
-            Connection conn = null;
-            try {
-                conn = getConnection(stashInfo);
-
-                processLines(stashInfo, reader, conn);
-            } catch (SQLException e) {
-                System.out.println("Error getting connection: " + e.getMessage());
-            } finally {
-                if (conn != null) {try {conn.close();} catch (SQLException e) {e.getErrorCode();}}
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading csv file: " + e.getMessage());
+            processLines(stashInfo, reader, conn);
+        } catch (SQLException e) {
+            System.out.println("Error getting connection: " + e.getMessage());
+        } finally {
+            if (conn != null) {try {conn.close();} catch (SQLException e) {e.getErrorCode();}}
         }
     }
 
@@ -89,15 +87,28 @@ public class CSVStash {
             stmt = conn.createStatement();
 
             stmt.executeUpdate(statement);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println("Error executing statement: " + e.getMessage());
         } finally {
             if (stmt != null) {try {stmt.close();} catch (SQLException e) {e.getErrorCode();}}
         }
     }
 
-    // ./csvstash FL_insurance_sample.csv localhost test root root insurance
     public static void main(String[] args) {
-        new CSVStash().stash(new StashInfo(args[0], args[1], args[2], args[3], args[4], args[5]));
+        if (args.length < 2) {
+            System.out.println("usage: csvstash config.json sample.csv");
+
+            return;
+        }
+
+        try {
+            StashInfo stashInfo = new ObjectMapper().readValue(new File(args[0]), StashInfo.class);
+
+            stashInfo.setCsvFile(args[1]);
+
+            new CSVStash().stash(stashInfo);
+        } catch (IOException e) {
+            System.out.println("Error reading csv file: " + e.getMessage());
+        }
     }
 }

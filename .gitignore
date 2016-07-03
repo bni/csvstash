@@ -1,4 +1,7 @@
 .DS_Store
 .idea/
 *.iml
-target/
+target/**
+!target/csvstash
+!target/config.json
+!target/sample.csv
