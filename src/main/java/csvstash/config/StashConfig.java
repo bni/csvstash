@@ -31,6 +31,9 @@ public class StashConfig {
     @JsonProperty("columnTypes")
     private List<ColumnType> columnTypes;
 
+    @JsonProperty("purgeCriteria")
+    private String purgeCriteria;
+
     // Default constructor required by Jackson
     public StashConfig() {}
 
@@ -72,5 +75,9 @@ public class StashConfig {
         return columnTypes.stream().collect(
             Collectors.toMap(ColumnType::getColumnName, ColumnType::getColumnType)
         );
+    }
+
+    public String getPurgeCriteria() {
+        return purgeCriteria;
     }
 }

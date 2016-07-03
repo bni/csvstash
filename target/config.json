@@ -15,5 +15,6 @@
       "columnName": "eq_site_limit",
       "columnType": "DOUBLE"
     }
-  ]
+  ],
+  "purgeCriteria": ""
 }

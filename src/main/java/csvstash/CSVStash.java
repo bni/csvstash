@@ -39,6 +39,8 @@ public class CSVStash {
         while ((line = reader.readNext()) != null) {
             if (i == 0) {
                 createTable(stashConfig, line, conn);
+
+                purgeTable(stashConfig, conn);
             } else {
                 insertRow(stashConfig, line, conn);
             }
@@ -69,6 +71,18 @@ public class CSVStash {
         }
 
         return createTableStatement.replaceAll(", $", ");");
+    }
+
+    private void purgeTable(StashConfig stashConfig, Connection conn) {
+        String purgeCriteria = stashConfig.getPurgeCriteria();
+
+        if (purgeCriteria == null || "".equals(purgeCriteria)) {
+            purgeCriteria = "1 = 1"; // Purge everything;
+        }
+
+        String statement = "DELETE FROM " + stashConfig.getTable() + " WHERE " + purgeCriteria + ";";
+
+        executeStatement(statement, conn);
     }
 
     private void insertRow(StashConfig stashConfig, String[] line, Connection conn) {
