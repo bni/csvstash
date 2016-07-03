@@ -1,8 +1,8 @@
-package csvstash;
+package csvstash.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-class ColumnType {
+public class ColumnType {
     @JsonProperty("columnName")
     private String columnName;
 
@@ -10,9 +10,9 @@ class ColumnType {
     private String columnType;
 
     // Default constructor required by Jackson
-    ColumnType() {}
+    public ColumnType() {}
 
-    ColumnType(String columnName, String columnType) {
+    public ColumnType(String columnName, String columnType) {
         this.columnName = columnName;
         this.columnType = columnType;
     }

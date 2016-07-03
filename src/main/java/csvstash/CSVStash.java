@@ -2,6 +2,7 @@ package csvstash;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
+import csvstash.config.StashConfig;
 
 import java.io.File;
 import java.io.FileReader;
@@ -14,16 +15,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CSVStash {
-    private Map<String, String> completeColumnTypes;
+    private Map<String, String> headerColumnTypes;
 
-    private void stash(StashInfo stashInfo) throws IOException {
-        CSVReader reader = new CSVReader(new FileReader(stashInfo.getCsvFile()));
+    private void stash(StashConfig stashConfig) throws IOException {
+        CSVReader reader = new CSVReader(new FileReader(stashConfig.getCsvFile()));
 
         Connection conn = null;
         try {
-            conn = getConnection(stashInfo);
+            conn = getConnection(stashConfig);
 
-            processLines(stashInfo, reader, conn);
+            processLines(stashConfig, reader, conn);
         } catch (SQLException e) {
             System.out.println("Error getting connection: " + e.getMessage());
         } finally {
@@ -31,81 +32,92 @@ public class CSVStash {
         }
     }
 
-    private void processLines(StashInfo stashInfo, CSVReader reader, Connection conn) throws IOException {
+    private void processLines(StashConfig stashConfig, CSVReader reader, Connection conn) throws IOException {
         String[] line;
 
         int i = 0;
-
         while ((line = reader.readNext()) != null) {
             if (i == 0) {
-                createTable(stashInfo, line, conn);
+                createTable(stashConfig, line, conn);
             } else {
-                insertRow(stashInfo, line, conn);
+                insertRow(stashConfig, line, conn);
             }
 
             i++;
         }
     }
 
-    private void createTable(StashInfo stashInfo, String[] line, Connection conn) {
-        executeStatement(generateCreateTableStatement(stashInfo, line), conn);
+    private void createTable(StashConfig stashConfig, String[] line, Connection conn) {
+        executeStatement(generateCreateTableStatement(stashConfig, line), conn);
     }
 
-    String generateCreateTableStatement(StashInfo stashInfo, String[] header) {
-        String createTableStatement = "CREATE TABLE IF NOT EXISTS " + stashInfo.getTable() + " (";
+    String generateCreateTableStatement(StashConfig stashConfig, String[] header) {
+        String createTableStatement = "CREATE TABLE IF NOT EXISTS " + stashConfig.getTable() + " (";
 
-        completeColumnTypes = new LinkedHashMap<>();
+        headerColumnTypes = new LinkedHashMap<>();
 
         for (String columnName : header) {
-            String columnType = stashInfo.getColumnTypes().get(columnName);
+            String columnType = stashConfig.getColumnTypes().get(columnName);
 
             if (columnType != null) {
-                completeColumnTypes.put(columnName, columnType);
+                headerColumnTypes.put(columnName, columnType);
             } else {
-                completeColumnTypes.put(columnName, StashInfo.DEFAULT_COLUMN_TYPE);
+                headerColumnTypes.put(columnName, StashConfig.DEFAULT_COLUMN_TYPE);
             }
 
-            createTableStatement += columnName + " " + completeColumnTypes.get(columnName) + ", ";
+            createTableStatement += columnName + " " + headerColumnTypes.get(columnName) + ", ";
         }
 
         return createTableStatement.replaceAll(", $", ");");
     }
 
-    private void insertRow(StashInfo stashInfo, String[] line, Connection conn) {
-        executeStatement(generateInsertRowStatement(stashInfo, line), conn);
+    private void insertRow(StashConfig stashConfig, String[] line, Connection conn) {
+        executeStatement(generateInsertRowStatement(stashConfig, line), conn);
     }
 
-    String generateInsertRowStatement(StashInfo stashInfo, String[] line) {
+    String generateInsertRowStatement(StashConfig stashConfig, String[] line) {
+        String insertStatement = "INSERT INTO " + stashConfig.getTable() + " (" +
+            generateColumnSpecification() + ") VALUES (";
+
+        insertStatement += generateValues(line);
+
+        return insertStatement;
+    }
+
+    private String generateColumnSpecification() {
         String columnSpecification = "";
-        for (Map.Entry<String, String> entry : completeColumnTypes.entrySet()) {
+        for (Map.Entry<String, String> entry : headerColumnTypes.entrySet()) {
             columnSpecification += entry.getKey() + ", ";
         }
         columnSpecification = columnSpecification.replaceAll(", $", "");
+        return columnSpecification;
+    }
 
-        String insertStatement = "INSERT INTO " + stashInfo.getTable() + " (" + columnSpecification + ") VALUES (";
+    private String generateValues(String[] line) {
+        String values = "";
 
         int i = 0;
         for (String value : line) {
-            String columnType = (String)completeColumnTypes.values().toArray()[i];
+            String columnType = (String)headerColumnTypes.values().toArray()[i];
 
             String hyphen = "";
             if (columnType.contains("CHAR") || columnType.contains("DATE")) {
                 hyphen = "'";
             }
 
-            insertStatement += hyphen + value + hyphen + ", ";
+            values += hyphen + value + hyphen + ", ";
 
             i++;
         }
 
-        return insertStatement.replaceAll(", $", ");");
+        return values.replaceAll(", $", ");");
     }
 
-    private Connection getConnection(StashInfo stashInfo) throws SQLException {
-        return DriverManager.getConnection("jdbc:mysql://" + stashInfo.getHost() +
-            "/" + stashInfo.getDatabase() + "?" +
-            "user=" + stashInfo.getUser() + "&" +
-            "password=" + stashInfo.getPass() + "&" +
+    private Connection getConnection(StashConfig stashConfig) throws SQLException {
+        return DriverManager.getConnection("jdbc:mysql://" + stashConfig.getHost() +
+            "/" + stashConfig.getDatabase() + "?" +
+            "user=" + stashConfig.getUser() + "&" +
+            "password=" + stashConfig.getPass() + "&" +
             "serverTimezone=UTC&" +
             "useSSL=false");
     }
@@ -132,11 +144,11 @@ public class CSVStash {
         }
 
         try {
-            StashInfo stashInfo = new ObjectMapper().readValue(new File(args[0]), StashInfo.class);
+            StashConfig stashConfig = new ObjectMapper().readValue(new File(args[0]), StashConfig.class);
 
-            stashInfo.setCsvFile(args[1]);
+            stashConfig.setCsvFile(args[1]);
 
-            new CSVStash().stash(stashInfo);
+            new CSVStash().stash(stashConfig);
         } catch (IOException e) {
             System.out.println("Error reading csv file: " + e.getMessage());
         }

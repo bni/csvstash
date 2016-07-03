@@ -1,4 +1,4 @@
-package csvstash;
+package csvstash.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-class StashInfo {
-    static final String DEFAULT_COLUMN_TYPE = "VARCHAR(255)";
+public class StashConfig {
+    public static final String DEFAULT_COLUMN_TYPE = "VARCHAR(255)";
 
     @JsonIgnore
     private String csvFile;
@@ -32,43 +32,43 @@ class StashInfo {
     private List<ColumnType> columnTypes;
 
     // Default constructor required by Jackson
-    StashInfo() {}
+    public StashConfig() {}
 
     // Used from test
-    StashInfo(String table, List<ColumnType> columnTypes) {
+    public StashConfig(String table, List<ColumnType> columnTypes) {
         this.table = table;
         this.columnTypes = columnTypes;
     }
 
-    String getCsvFile() {
+    public String getCsvFile() {
         return csvFile;
     }
 
-    void setCsvFile(String csvFile) {
+    public void setCsvFile(String csvFile) {
         this.csvFile = csvFile;
     }
 
-    String getHost() {
+    public String getHost() {
         return host;
     }
 
-    String getDatabase() {
+    public String getDatabase() {
         return database;
     }
 
-    String getUser() {
+    public String getUser() {
         return user;
     }
 
-    String getPass() {
+    public String getPass() {
         return pass;
     }
 
-    String getTable() {
+    public String getTable() {
         return table;
     }
 
-    Map<String, String> getColumnTypes() {
+    public Map<String, String> getColumnTypes() {
         return columnTypes.stream().collect(
             Collectors.toMap(ColumnType::getColumnName, ColumnType::getColumnType)
         );

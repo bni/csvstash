@@ -1,5 +1,7 @@
 package csvstash;
 
+import csvstash.config.ColumnType;
+import csvstash.config.StashConfig;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -41,26 +43,26 @@ public class CSVStashTest {
 
     @Test
     public void generateCreateTableStatement() throws Exception {
-        StashInfo stashInfo = new StashInfo("test", generateDummyColumnTypes());
+        StashConfig stashConfig = new StashConfig("test", generateDummyColumnTypes());
 
         assertEquals(
             "Create table statement is not correct",
             EXPECTED_CREATE_TABLE_STATEMENT,
-            new CSVStash().generateCreateTableStatement(stashInfo, INPUT_HEADER));
+            new CSVStash().generateCreateTableStatement(stashConfig, INPUT_HEADER));
     }
 
     @Test
     public void generateInsertRowStatement() throws Exception {
-        StashInfo stashInfo = new StashInfo("test", generateDummyColumnTypes());
+        StashConfig stashConfig = new StashConfig("test", generateDummyColumnTypes());
 
         // Must generate complete column types before we can generate insert statement
         CSVStash csvStash = new CSVStash();
-        csvStash.generateCreateTableStatement(stashInfo, INPUT_HEADER);
+        csvStash.generateCreateTableStatement(stashConfig, INPUT_HEADER);
 
         assertEquals(
             "Insert statement is not correct",
             EXPECTED_INSERT_STATEMENT,
-            csvStash.generateInsertRowStatement(stashInfo, INPUT_LINE));
+            csvStash.generateInsertRowStatement(stashConfig, INPUT_LINE));
     }
 
     private List<ColumnType> generateDummyColumnTypes() {
